@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Modal } from './ui/Modal';
-import { Input } from './ui/Input';
-import { Button } from './ui/Button';
+import { Modal } from '../ui/Modal';
+import { Input } from '../ui/Input';
+import { Button } from '../ui/Button';
 import { Task, Priority } from '@/types';
 import { Trash2 } from 'lucide-react';
 

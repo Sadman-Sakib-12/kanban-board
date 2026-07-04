@@ -1,5 +1,5 @@
-import { KanbanBoard } from '@/components/KanbanBoard';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { KanbanBoard } from '@/components/board/Board';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { KanbanSquare } from 'lucide-react';
 
 export default function Home() {

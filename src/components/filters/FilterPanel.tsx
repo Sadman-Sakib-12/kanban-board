@@ -1,5 +1,5 @@
 import React from 'react';
-import { Input } from './ui/Input';
+import { Input } from '../ui/Input';
 import { Priority } from '@/types';
 import { Search } from 'lucide-react';
 

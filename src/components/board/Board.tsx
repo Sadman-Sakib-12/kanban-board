@@ -14,11 +14,11 @@ import {
   DragEndEvent,
 } from '@dnd-kit/core';
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { useKanban } from '@/store/KanbanContext';
-import { KanbanColumn } from './KanbanColumn';
+import { useKanban } from '@/context/KanbanContext';
+import { KanbanColumn } from './Column';
 import { TaskCard } from './TaskCard';
-import { TaskModal } from './TaskModal';
-import { FilterBar } from './FilterBar';
+import { TaskModal } from '../modal/TaskModal';
+import { FilterBar } from '../filters/FilterPanel';
 import { Task, Priority } from '@/types';
 
 export function KanbanBoard() {

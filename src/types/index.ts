@@ -1,31 +1,8 @@
-export type Priority = 'High' | 'Medium' | 'Low';
+export * from './task';
+export * from './column';
 
-export interface Label {
-  id: string;
-  name: string;
-  color: string;
-}
-
-export interface Assignee {
-  name: string;
-  avatar?: string;
-}
-
-export interface Task {
-  id: string;
-  title: string;
-  description: string;
-  assignee?: Assignee;
-  labels: Label[];
-  dueDate?: string;
-  priority: Priority;
-  columnId: string;
-}
-
-export interface Column {
-  id: string;
-  title: string;
-}
+import { Column } from './column';
+import { Task } from './task';
 
 export interface Board {
   columns: Column[];

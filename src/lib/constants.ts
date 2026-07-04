@@ -1,0 +1,1 @@
+export const PRIORITY_COLORS = { High: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300", Medium: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300", Low: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" };

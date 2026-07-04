@@ -2,8 +2,8 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Task } from '@/types';
-import { Badge } from './ui/Badge';
-import { Avatar } from './ui/Avatar';
+import { Badge } from '../ui/Badge';
+import { Avatar } from '../ui/Avatar';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 
