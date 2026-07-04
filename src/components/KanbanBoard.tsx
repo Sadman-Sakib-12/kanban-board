@@ -18,7 +18,8 @@ import { useKanban } from '@/store/KanbanContext';
 import { KanbanColumn } from './KanbanColumn';
 import { TaskCard } from './TaskCard';
 import { TaskModal } from './TaskModal';
-import { Task } from '@/types';
+import { FilterBar } from './FilterBar';
+import { Task, Priority } from '@/types';
 
 export function KanbanBoard() {
   const { board, setTasks, addTask, updateTask, deleteTask, isLoaded } = useKanban();
@@ -29,6 +30,10 @@ export function KanbanBoard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [addingToColumnId, setAddingToColumnId] = useState<string | undefined>();
+
+  // Filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState<Priority | 'All'>('All');
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -42,6 +47,20 @@ export function KanbanBoard() {
       </div>
     );
   }
+
+  // --- Filter logic ---
+  const filteredTasks = board.tasks.filter((task) => {
+    const query = searchQuery.toLowerCase();
+    const matchesSearch = 
+      !query || 
+      task.title.toLowerCase().includes(query) || 
+      (task.assignee?.name.toLowerCase().includes(query)) ||
+      task.labels?.some(l => l.name.toLowerCase().includes(query));
+
+    const matchesPriority = priorityFilter === 'All' || task.priority === priorityFilter;
+
+    return matchesSearch && matchesPriority;
+  });
 
   // --- Drag and drop logic ---
   const handleDragStart = (event: DragStartEvent) => {
@@ -138,7 +157,14 @@ export function KanbanBoard() {
   };
 
   return (
-    <>
+    <div className="flex flex-col h-full w-full">
+      <FilterBar 
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        priorityFilter={priorityFilter}
+        setPriorityFilter={setPriorityFilter}
+      />
+      
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -146,9 +172,9 @@ export function KanbanBoard() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-6 p-6 overflow-x-auto h-full items-start w-full">
+        <div className="flex gap-6 p-6 overflow-x-auto flex-1 items-start w-full">
           {board.columns.map((column) => {
-            const columnTasks = board.tasks.filter((t) => t.columnId === column.id);
+            const columnTasks = filteredTasks.filter((t) => t.columnId === column.id);
             return (
               <KanbanColumn 
                 key={column.id} 
@@ -174,6 +200,6 @@ export function KanbanBoard() {
         onSave={handleSaveTask}
         onDelete={handleDeleteTask}
       />
-    </>
+    </div>
   );
 }
