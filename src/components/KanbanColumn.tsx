@@ -3,14 +3,17 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Column, Task } from '@/types';
 import { TaskCard } from './TaskCard';
+import { Button } from './ui/Button';
+import { Plus } from 'lucide-react';
 
 interface KanbanColumnProps {
   column: Column;
   tasks: Task[];
   onTaskClick?: (task: Task) => void;
+  onAddTask?: (columnId: string) => void;
 }
 
-export function KanbanColumn({ column, tasks, onTaskClick }: KanbanColumnProps) {
+export function KanbanColumn({ column, tasks, onTaskClick, onAddTask }: KanbanColumnProps) {
   const taskIds = useMemo(() => tasks.map((t) => t.id), [tasks]);
 
   const { setNodeRef, isOver } = useDroppable({
@@ -19,7 +22,7 @@ export function KanbanColumn({ column, tasks, onTaskClick }: KanbanColumnProps) 
   });
 
   return (
-    <div className="flex flex-col flex-shrink-0 w-[320px] bg-muted/40 rounded-xl border border-border shadow-sm">
+    <div className="flex flex-col flex-shrink-0 w-[320px] bg-muted/40 rounded-xl border border-border shadow-sm max-h-full">
       <div className="p-3 border-b border-border flex items-center justify-between bg-muted/20">
         <div className="flex items-center gap-2">
           <h3 className="font-semibold text-sm text-foreground">{column.title}</h3>
@@ -31,7 +34,7 @@ export function KanbanColumn({ column, tasks, onTaskClick }: KanbanColumnProps) 
       
       <div 
         ref={setNodeRef}
-        className={`flex-1 p-3 overflow-y-auto flex flex-col gap-3 min-h-[150px] transition-colors rounded-b-xl ${
+        className={`flex-1 p-3 overflow-y-auto custom-scrollbar flex flex-col gap-3 min-h-[150px] transition-colors ${
           isOver ? 'bg-primary/5' : ''
         }`}
       >
@@ -40,6 +43,17 @@ export function KanbanColumn({ column, tasks, onTaskClick }: KanbanColumnProps) 
             <TaskCard key={task.id} task={task} onClick={onTaskClick} />
           ))}
         </SortableContext>
+      </div>
+
+      <div className="p-3 border-t border-border bg-muted/20">
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start text-muted-foreground hover:text-foreground"
+          onClick={() => onAddTask?.(column.id)}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Task
+        </Button>
       </div>
     </div>
   );
