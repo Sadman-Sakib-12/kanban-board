@@ -1,10 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { Task, Priority } from '@/types';
 import { Trash2 } from 'lucide-react';
+import { z } from 'zod';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { RichTextEditor } from '../ui/RichTextEditor';
+
+const taskSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  assigneeName: z.string().optional(),
+  priority: z.enum(['Low', 'Medium', 'High']),
+  dueDate: z.string().optional(),
+  labelString: z.string().optional(),
+});
+
+type TaskFormValues = z.infer<typeof taskSchema>;
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -16,57 +31,63 @@ interface TaskModalProps {
 }
 
 export function TaskModal({ isOpen, onClose, task, columnId, onSave, onDelete }: TaskModalProps) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [assigneeName, setAssigneeName] = useState('');
-  const [priority, setPriority] = useState<Priority>('Medium');
-  const [dueDate, setDueDate] = useState('');
-  const [labelString, setLabelString] = useState('');
+  const { register, handleSubmit, control, reset, formState: { errors } } = useForm<TaskFormValues>({
+    resolver: zodResolver(taskSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      assigneeName: '',
+      priority: 'Medium',
+      dueDate: '',
+      labelString: ''
+    }
+  });
 
   // Reset or populate form when modal opens
   useEffect(() => {
     if (isOpen) {
       if (task) {
-        setTitle(task.title);
-        setDescription(task.description || '');
-        setAssigneeName(task.assignee?.name || '');
-        setPriority(task.priority);
-        setDueDate(task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '');
-        setLabelString(task.labels?.map(l => l.name).join(', ') || '');
+        reset({
+          title: task.title,
+          description: task.description || '',
+          assigneeName: task.assignee?.name || '',
+          priority: task.priority,
+          dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+          labelString: task.labels?.map(l => l.name).join(', ') || ''
+        });
       } else {
-        setTitle('');
-        setDescription('');
-        setAssigneeName('');
-        setPriority('Medium');
-        setDueDate('');
-        setLabelString('');
+        reset({
+          title: '',
+          description: '',
+          assigneeName: '',
+          priority: 'Medium',
+          dueDate: '',
+          labelString: ''
+        });
       }
     }
-  }, [isOpen, task]);
+  }, [isOpen, task, reset]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim()) return;
-
+  const onSubmit = (data: TaskFormValues) => {
     // Parse labels
-    const labels = labelString
+    const labels = (data.labelString || '')
       .split(',')
       .map(s => s.trim())
       .filter(Boolean)
       .map(name => ({
         id: uuidv4(),
         name,
-        color: '#818cf8' // Default color (indigo-400)
+        color: '#818cf8' // Default color
       }));
 
     const newTask: Task = {
       id: task ? task.id : uuidv4(),
-      title: title.trim(),
-      description: description.trim(),
-      assignee: assigneeName.trim() ? { name: assigneeName.trim() } : undefined,
-      priority,
-      labels: task && task.labels.length > 0 && !labelString ? task.labels : labels,
-      dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
+      title: data.title.trim(),
+      description: data.description?.trim() || '',
+      assignee: data.assigneeName?.trim() ? { name: data.assigneeName.trim() } : undefined,
+      priority: data.priority,
+      labels: task && task.labels.length > 0 && !data.labelString ? task.labels : labels,
+      dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : undefined,
       columnId: task ? task.columnId : (columnId || 'col-backlog'),
     };
 
@@ -76,25 +97,29 @@ export function TaskModal({ isOpen, onClose, task, columnId, onSave, onDelete }:
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={task ? 'Edit Task' : 'New Task'}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">Title <span className="text-red-500">*</span></label>
           <Input
             autoFocus
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
             placeholder="Task title"
-            required
+            {...register('title')}
           />
+          {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1">Description</label>
-          <textarea
-            className="flex w-full rounded-md border border-border bg-card px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[100px]"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Add a more detailed description..."
+          <Controller
+            name="description"
+            control={control}
+            render={({ field }) => (
+              <RichTextEditor 
+                value={field.value || ''} 
+                onChange={field.onChange} 
+                placeholder="Add a more detailed description..."
+              />
+            )}
           />
         </div>
 
@@ -103,20 +128,19 @@ export function TaskModal({ isOpen, onClose, task, columnId, onSave, onDelete }:
             <label className="block text-sm font-medium mb-1">Priority</label>
             <select
               className="flex h-10 w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              value={priority}
-              onChange={(e) => setPriority(e.target.value as Priority)}
+              {...register('priority')}
             >
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
               <option value="High">High</option>
             </select>
+            {errors.priority && <p className="text-red-500 text-xs mt-1">{errors.priority.message}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Due Date</label>
             <Input
               type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
+              {...register('dueDate')}
             />
           </div>
         </div>
@@ -125,17 +149,15 @@ export function TaskModal({ isOpen, onClose, task, columnId, onSave, onDelete }:
           <div>
             <label className="block text-sm font-medium mb-1">Assignee</label>
             <Input
-              value={assigneeName}
-              onChange={(e) => setAssigneeName(e.target.value)}
               placeholder="Assignee name"
+              {...register('assigneeName')}
             />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Labels</label>
             <Input
-              value={labelString}
-              onChange={(e) => setLabelString(e.target.value)}
               placeholder="e.g. Bug, Feature, Urgent"
+              {...register('labelString')}
             />
           </div>
         </div>
