@@ -1,20 +1,29 @@
 # Interactive Kanban Board
 
-A modern, responsive Kanban Board application built with Next.js 14 (App Router), Tailwind CSS, and TypeScript. 
+A modern, responsive Kanban Board application built with Next.js (App Router), Tailwind CSS, and TypeScript. 
 This project was developed as a frontend internship task for SammTech Ltd.
 
 ## 🚀 Live Demo
-[Add your Vercel URL here]
+[https://kanban-board-psi-fawn.vercel.app](https://kanban-board-psi-fawn.vercel.app)
 
-## ✨ Features
+## ✨ Features Implemented
+**Core Features (100% Completed):**
 - **Board Structure:** Default columns (Backlog, Todo, In Progress, Review, Done).
-- **Task Cards:** Detailed task cards with Title, Description, Assignee (with avatar), Colored Labels, Due Date, and Priority.
-- **Drag & Drop:** Smooth drag-and-drop functionality using `@dnd-kit` to move cards between columns and reorder them.
+- **Task Cards:** Detailed task cards with Title, Description (rich text format), Assignee (with avatar), Colored Labels, Due Date, and Priority.
+- **Drag & Drop:** Smooth drag-and-drop functionality using `@dnd-kit` to move cards between columns and reorder them within the same column.
 - **Task Management:** Click to edit a task, add new tasks, or delete tasks using a clean Modal interface.
 - **Search & Filter:** Instantly filter tasks by title, assignee name, label, or priority level.
-- **Theme Support:** Dark and Light mode toggle that respects system preferences.
+- **Theme Support:** Dark and Light mode toggle that respects system preferences and persists.
 - **Persistence:** All data is automatically saved to local storage so you don't lose your work on refresh.
-- **Responsive:** Fully functional on both mobile and desktop screens.
+- **Responsive:** Fully functional and touch-friendly on both mobile and desktop screens.
+
+**Bonus Features (100% Completed):**
+- **Add Custom Columns:** Users can dynamically add new columns to the board.
+- **Undo / Redo:** Full undo/redo functionality for board actions (drag & drop, delete, add) using `Ctrl+Z` / `Ctrl+Y` and UI buttons.
+- **Keyboard Shortcuts:** Press `N` to quickly open the new task modal. `Esc` to close modals.
+- **Export / Import JSON:** Easily backup your board to a JSON file and restore it on any device.
+- **Virtualized List:** Columns use `@tanstack/react-virtual` to efficiently render hundreds of tasks without performance degradation.
+- **Real-time Syncing:** Uses the `BroadcastChannel` API to instantly sync drag-and-drop and state changes across multiple open browser tabs in real-time, simulating a collaborative backend.
 
 ## 🛠️ Setup Instructions
 
@@ -34,20 +43,23 @@ This project was developed as a frontend internship task for SammTech Ltd.
 4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 🧠 Technical Decisions
-- **Framework (Next.js 14 App Router):** Used for its modern architecture, excellent performance, and out-of-the-box optimizations.
-- **State Management (React Context):** I chose native React Context combined with local state over external libraries (like Redux) to keep the bundle size small and demonstrate core React proficiency. A custom hook ensures the state seamlessly syncs with `localStorage`.
-- **Drag & Drop (@dnd-kit):** Unlike `react-beautiful-dnd` (which is largely unmaintained and has issues with React 18 Strict Mode), `@dnd-kit` is modern, highly accessible, and modular. It perfectly handles complex multiple-container sorting logic.
-- **Styling (Tailwind CSS):** Used for rapid, custom UI development without relying on heavy component libraries. This ensured maximum flexibility over the design aesthetics to create a glassmorphism-inspired premium look.
-- **Components:** Built atomic UI components (`Button`, `Input`, `Modal`, `Badge`) from scratch to maintain a cohesive design system without external UI dependencies.
+- **Framework (Next.js App Router):** Used for its modern architecture, excellent performance, and out-of-the-box optimizations. Kept strict separation of Client and Server components.
+- **State Management (React Context):** I chose native React Context combined with local state over external libraries (like Redux) to keep the bundle size small and demonstrate core React proficiency. A custom hook ensures the state seamlessly syncs with `localStorage` and `BroadcastChannel`.
+- **Drag & Drop (@dnd-kit):** Unlike `react-beautiful-dnd` (which is largely unmaintained and has issues with React Strict Mode), `@dnd-kit` is modern, highly accessible, modular, and works seamlessly with pointer/touch events.
+- **Virtualization (@tanstack/react-virtual):** Integrated a virtualized list to ensure the drag-and-drop experience remains butter-smooth even if a column has thousands of tasks.
+- **Styling (Tailwind CSS):** Used for rapid, custom UI development without relying on heavy external component libraries. This ensured maximum flexibility over the design aesthetics to create a sleek, responsive premium look.
+- **Icons & Forms:** Utilized `lucide-react` for clean SVG icons and `react-hook-form` with `zod` for robust task modal validations.
 
 ## 🚧 Challenges Faced & Solutions
 - **Hydration Mismatch with Local Storage:** Since Next.js renders on the server first, accessing `localStorage` directly causes hydration errors because the server HTML doesn't match the client HTML (which has the stored data). 
-  - *Solution:* I implemented a mounted state pattern (`isLoaded` flag) in the context provider to ensure the initial render matches the server, and then loads the local storage data immediately after mounting.
-- **Cross-Column Drag Logic:** Moving items between different lists while maintaining their visual order during the drag requires careful tracking of `activeId` and `overId`.
-  - *Solution:* Leveraged `@dnd-kit`'s `useSensors` and `arrayMove` function, and wrote robust collision detection logic in `KanbanBoard` to correctly update the `columnId` of a task when dropped over a new column.
+  - *Solution:* Implemented a mounted state pattern (`isLoaded` flag) in the context provider to ensure the initial render matches the server, and then loads the local storage data immediately after mounting.
+- **Integrating Virtualization with Drag and Drop:** Rendering only visible items in a virtualized list can disrupt drag-and-drop libraries that expect DOM nodes for all draggable elements to exist.
+  - *Solution:* Integrated the virtualization container tightly with `@dnd-kit`'s `SortableContext`, ensuring the active dragged item's dimensions and positions are correctly mapped and rendered dynamically via absolutely positioned rows.
+- **Undo/Redo with LocalStorage:** Tracking past and future states efficiently without causing infinite loops when syncing with `BroadcastChannel` and `localStorage`.
+  - *Solution:* Created a wrapper around the state setter that deeply compares state changes before pushing them to the history stack, preventing side-effect loops.
 
-## 💡 Future Improvements (With more time)
-- **Backend Integration:** Replace local storage with a real backend (e.g., PostgreSQL + Prisma) for multi-user collaboration.
-- **Real-time Syncing:** Implement WebSockets or `BroadcastChannel` to sync state across multiple browser tabs in real-time.
-- **Undo/Redo Stack:** Keep a history of the state array to easily undo accidental drag-and-drops or deletions.
-- **Custom Columns:** Allow users to add, rename, and delete custom columns.
+## 💡 What I would improve with more time
+- **Backend & Database Integration:** Replace local storage with a real backend (e.g., PostgreSQL + Prisma + Next.js Server Actions) for true multi-user cloud collaboration.
+- **User Authentication:** Add NextAuth or Clerk for user sign-in and personalized workspaces.
+- **Advanced Animations:** Add `framer-motion` for even smoother layout transitions when columns are reordered or tasks are filtered out.
+- **Column Reordering:** Allow users to drag and drop entire columns left and right, not just tasks.
