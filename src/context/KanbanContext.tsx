@@ -7,21 +7,38 @@ import { v4 as uuidv4 } from 'uuid';
 
 interface KanbanContextProps {
   board: Board;
-  setBoard: React.Dispatch<React.SetStateAction<Board>>;
+  setBoard: (board: Board | ((b: Board) => Board)) => void;
   setTasks: (tasks: Task[]) => void;
   setColumns: (columns: Column[]) => void;
   addTask: (task: Task) => void;
   updateTask: (task: Task) => void;
   deleteTask: (id: string) => void;
   addColumn: (title: string) => void;
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
   isLoaded: boolean;
 }
 
 const KanbanContext = createContext<KanbanContextProps | undefined>(undefined);
 
 export const KanbanProvider = ({ children }: { children: ReactNode }) => {
-  const [board, setBoard] = useState<Board>({ columns: [], tasks: [] });
+  const [board, _setBoard] = useState<Board>({ columns: [], tasks: [] });
+  const [past, setPast] = useState<Board[]>([]);
+  const [future, setFuture] = useState<Board[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  const setBoard = (newBoard: Board | ((b: Board) => Board)) => {
+    _setBoard((current) => {
+      const updated = typeof newBoard === 'function' ? newBoard(current) : newBoard;
+      if (JSON.stringify(current) !== JSON.stringify(updated)) {
+        setPast((p) => [...p, current]);
+        setFuture([]);
+      }
+      return updated;
+    });
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem('kanban-board');
@@ -29,16 +46,16 @@ export const KanbanProvider = ({ children }: { children: ReactNode }) => {
       try {
         const parsed = JSON.parse(saved);
         if (parsed && parsed.columns && parsed.tasks) {
-          setBoard(parsed);
+          _setBoard(parsed); // use _setBoard to prevent adding to history
         } else {
-          setBoard(defaultBoard);
+          _setBoard(defaultBoard);
         }
       } catch (e) {
         console.error('Failed to parse local storage data, using default.', e);
-        setBoard(defaultBoard);
+        _setBoard(defaultBoard);
       }
     } else {
-      setBoard(defaultBoard);
+      _setBoard(defaultBoard);
     }
     setIsLoaded(true);
   }, []);
@@ -73,9 +90,57 @@ export const KanbanProvider = ({ children }: { children: ReactNode }) => {
     setBoard((b) => ({ ...b, columns: [...b.columns, newColumn] }));
   };
 
+  const undo = () => {
+    if (past.length === 0) return;
+    const previous = past[past.length - 1];
+    setPast((p) => p.slice(0, p.length - 1));
+    setFuture((f) => [board, ...f]);
+    _setBoard(previous);
+  };
+
+  const redo = () => {
+    if (future.length === 0) return;
+    const next = future[0];
+    setFuture((f) => f.slice(1));
+    setPast((p) => [...p, board]);
+    _setBoard(next);
+  };
+
+  // Keyboard shortcuts for Undo/Redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input/textarea
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.target instanceof HTMLSelectElement ||
+        (e.target as HTMLElement).isContentEditable
+      ) {
+        return;
+      }
+      
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        if (e.shiftKey) {
+          e.preventDefault();
+          redo();
+        } else {
+          e.preventDefault();
+          undo();
+        }
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+        e.preventDefault();
+        redo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [past, future, board]);
+
   return (
     <KanbanContext.Provider value={{
-      board, setBoard, setTasks, setColumns, addTask, updateTask, deleteTask, addColumn, isLoaded
+      board, setBoard, setTasks, setColumns, addTask, updateTask, deleteTask, addColumn, 
+      undo, redo, canUndo: past.length > 0, canRedo: future.length > 0, isLoaded
     }}>
       {children}
     </KanbanContext.Provider>
