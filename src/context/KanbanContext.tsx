@@ -58,12 +58,29 @@ export const KanbanProvider = ({ children }: { children: ReactNode }) => {
       _setBoard(defaultBoard);
     }
     setIsLoaded(true);
+
+    const channel = new BroadcastChannel('kanban_sync');
+    channel.onmessage = (event) => {
+      const receivedBoard = event.data;
+      if (receivedBoard && receivedBoard.columns && receivedBoard.tasks) {
+        _setBoard((current) => {
+          if (JSON.stringify(current) !== JSON.stringify(receivedBoard)) {
+            return receivedBoard;
+          }
+          return current;
+        });
+      }
+    };
+    return () => channel.close();
   }, []);
 
   // Sync to local storage whenever board changes
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem('kanban-board', JSON.stringify(board));
+      const channel = new BroadcastChannel('kanban_sync');
+      channel.postMessage(board);
+      channel.close();
     }
   }, [board, isLoaded]);
 
