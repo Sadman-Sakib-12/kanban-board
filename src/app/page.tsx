@@ -1,6 +1,7 @@
 import { KanbanBoard } from '@/components/board/Board';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { KanbanSquare } from 'lucide-react';
+import { ExportImport } from '@/components/board/ExportImport';
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
         </div>
         
         <div className="flex items-center gap-4">
+          <ExportImport />
           <ThemeToggle />
         </div>
       </header>
