@@ -20,7 +20,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
 
     if (isOpen) {
       document.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden'; // Prevent scrolling behind modal
+      document.body.style.overflow = 'hidden';
     }
 
     return () => {
@@ -39,7 +39,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div 
+        <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
           onClick={handleBackdropClick}
           initial={{ opacity: 0 }}
@@ -47,7 +47,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
         >
-          <motion.div 
+          <motion.div
             ref={modalRef}
             className="bg-card text-card-foreground w-full max-w-2xl rounded-xl shadow-xl flex flex-col max-h-[90vh]"
             initial={{ scale: 0.95, opacity: 0, y: 10 }}

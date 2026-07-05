@@ -46,8 +46,8 @@ export const KanbanProvider = ({ children }: { children: ReactNode }) => {
       try {
         const parsed = JSON.parse(saved);
         if (parsed && parsed.columns && parsed.tasks) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          _setBoard(parsed); // use _setBoard to prevent adding to history
+
+          _setBoard(parsed);
         } else {
           _setBoard(defaultBoard);
         }
@@ -87,14 +87,14 @@ export const KanbanProvider = ({ children }: { children: ReactNode }) => {
 
   const setTasks = (tasks: Task[]) => setBoard((b) => ({ ...b, tasks }));
   const setColumns = (columns: Column[]) => setBoard((b) => ({ ...b, columns }));
-  
+
   const addTask = (task: Task) => setBoard((b) => ({ ...b, tasks: [...b.tasks, task] }));
-  
+
   const updateTask = (task: Task) => setBoard((b) => ({
     ...b,
     tasks: b.tasks.map((t) => (t.id === task.id ? task : t)),
   }));
-  
+
   const deleteTask = (id: string) => setBoard((b) => ({
     ...b,
     tasks: b.tasks.filter((t) => t.id !== id),
@@ -136,7 +136,7 @@ export const KanbanProvider = ({ children }: { children: ReactNode }) => {
       ) {
         return;
       }
-      
+
       if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
         if (e.shiftKey) {
           e.preventDefault();
@@ -157,7 +157,7 @@ export const KanbanProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <KanbanContext.Provider value={{
-      board, setBoard, setTasks, setColumns, addTask, updateTask, deleteTask, addColumn, 
+      board, setBoard, setTasks, setColumns, addTask, updateTask, deleteTask, addColumn,
       undo, redo, canUndo: past.length > 0, canRedo: future.length > 0, isLoaded
     }}>
       {children}

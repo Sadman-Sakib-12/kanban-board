@@ -26,9 +26,9 @@ import { Input } from '../ui/Input';
 
 export function KanbanBoard() {
   const { board, setTasks, addTask, updateTask, deleteTask, addColumn, isLoaded } = useKanban();
-  
+
   const [activeTask, setActiveTask] = useState<Task | null>(null);
-  
+
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -84,7 +84,6 @@ export function KanbanBoard() {
   // --- Keyboard shortcuts ---
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if user is typing in an input/textarea or if modal is already open
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement ||
@@ -118,9 +117,9 @@ export function KanbanBoard() {
   // --- Filter logic ---
   const filteredTasks = board.tasks.filter((task) => {
     const query = searchQuery.toLowerCase();
-    const matchesSearch = 
-      !query || 
-      task.title.toLowerCase().includes(query) || 
+    const matchesSearch =
+      !query ||
+      task.title.toLowerCase().includes(query) ||
       (task.assignee?.name.toLowerCase().includes(query)) ||
       task.labels?.some(l => l.name.toLowerCase().includes(query));
 
@@ -162,7 +161,7 @@ export function KanbanBoard() {
         const newTasks = [...board.tasks];
         const activeIndex = newTasks.findIndex((t) => t.id === activeId);
         const overIndex = newTasks.findIndex((t) => t.id === overId);
-        
+
         newTasks[activeIndex] = { ...activeTaskData, columnId: overTaskData.columnId };
         setTasks(arrayMove(newTasks, activeIndex, overIndex));
       }
@@ -201,13 +200,13 @@ export function KanbanBoard() {
 
   return (
     <div className="flex flex-col h-full w-full">
-      <FilterBar 
+      <FilterBar
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         priorityFilter={priorityFilter}
         setPriorityFilter={setPriorityFilter}
       />
-      
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -219,10 +218,10 @@ export function KanbanBoard() {
           {board.columns.map((column) => {
             const columnTasks = filteredTasks.filter((t) => t.columnId === column.id);
             return (
-              <KanbanColumn 
-                key={column.id} 
-                column={column} 
-                tasks={columnTasks} 
+              <KanbanColumn
+                key={column.id}
+                column={column}
+                tasks={columnTasks}
                 onTaskClick={handleEditTask}
                 onAddTask={handleAddTaskClick}
               />
@@ -232,9 +231,9 @@ export function KanbanBoard() {
           <div className="flex-shrink-0 w-80 h-fit rounded-xl bg-card border border-border p-3">
             {isAddingColumn ? (
               <form onSubmit={handleAddColumn} className="flex flex-col gap-2">
-                <Input 
+                <Input
                   autoFocus
-                  placeholder="Column title..." 
+                  placeholder="Column title..."
                   value={newColumnTitle}
                   onChange={(e) => setNewColumnTitle(e.target.value)}
                 />
@@ -246,8 +245,8 @@ export function KanbanBoard() {
                 </div>
               </form>
             ) : (
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 className="w-full flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
                 onClick={() => setIsAddingColumn(true)}
               >
