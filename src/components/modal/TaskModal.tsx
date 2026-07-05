@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
-import { Task, Priority } from '@/types';
+import { Task } from '@/types';
 import { Trash2 } from 'lucide-react';
 import { z } from 'zod';
 import { useForm, Controller } from 'react-hook-form';
@@ -25,7 +25,7 @@ interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
   task?: Task | null;
-  columnId?: string; // Used when creating a new task
+  columnId?: string;
   onSave: (task: Task) => void;
   onDelete?: (taskId: string) => void;
 }
@@ -77,7 +77,7 @@ export function TaskModal({ isOpen, onClose, task, columnId, onSave, onDelete }:
       .map(name => ({
         id: uuidv4(),
         name,
-        color: '#818cf8' // Default color
+        color: '#818cf8'
       }));
 
     const newTask: Task = {
@@ -114,9 +114,9 @@ export function TaskModal({ isOpen, onClose, task, columnId, onSave, onDelete }:
             name="description"
             control={control}
             render={({ field }) => (
-              <RichTextEditor 
-                value={field.value || ''} 
-                onChange={field.onChange} 
+              <RichTextEditor
+                value={field.value || ''}
+                onChange={field.onChange}
                 placeholder="Add a more detailed description..."
               />
             )}
@@ -177,9 +177,9 @@ export function TaskModal({ isOpen, onClose, task, columnId, onSave, onDelete }:
               <Trash2 className="w-4 h-4" /> Delete
             </Button>
           ) : (
-            <div></div> // Spacer
+            <div></div>
           )}
-          
+
           <div className="flex gap-2">
             <Button type="button" variant="ghost" onClick={onClose}>
               Cancel

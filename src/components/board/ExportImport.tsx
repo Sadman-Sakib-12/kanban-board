@@ -35,7 +35,7 @@ export function ExportImport() {
         } else {
           alert('Invalid board format');
         }
-      } catch (error) {
+      } catch {
         alert('Failed to parse JSON file');
       }
     };
@@ -45,10 +45,10 @@ export function ExportImport() {
 
   return (
     <div className="flex items-center gap-2">
-      <Button variant="outline" size="sm" onClick={handleExport} className="gap-2">
+      <Button variant="secondary" size="sm" onClick={handleExport} className="gap-2">
         <Download className="w-4 h-4" /> Export
       </Button>
-      <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="gap-2">
+      <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()} className="gap-2">
         <Upload className="w-4 h-4" /> Import
       </Button>
       <input 

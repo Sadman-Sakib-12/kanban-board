@@ -46,6 +46,7 @@ export const KanbanProvider = ({ children }: { children: ReactNode }) => {
       try {
         const parsed = JSON.parse(saved);
         if (parsed && parsed.columns && parsed.tasks) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           _setBoard(parsed); // use _setBoard to prevent adding to history
         } else {
           _setBoard(defaultBoard);
@@ -152,7 +153,7 @@ export const KanbanProvider = ({ children }: { children: ReactNode }) => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [past, future, board]);
+  }, [past, future, board, undo, redo]);
 
   return (
     <KanbanContext.Provider value={{

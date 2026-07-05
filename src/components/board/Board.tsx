@@ -47,13 +47,39 @@ export function KanbanBoard() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  if (!isLoaded) {
-    return (
-      <div className="flex items-center justify-center h-full text-muted-foreground animate-pulse p-10">
-        Loading board...
-      </div>
-    );
-  }
+  // --- Modal logic ---
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setAddingToColumnId(undefined);
+    setIsModalOpen(true);
+  };
+
+  const handleAddTaskClick = (columnId: string) => {
+    setEditingTask(null);
+    setAddingToColumnId(columnId);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveTask = (task: Task) => {
+    if (editingTask) {
+      updateTask(task);
+    } else {
+      addTask(task);
+    }
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    deleteTask(taskId);
+  };
+
+  const handleAddColumn = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newColumnTitle.trim()) {
+      addColumn(newColumnTitle.trim());
+      setNewColumnTitle('');
+      setIsAddingColumn(false);
+    }
+  };
 
   // --- Keyboard shortcuts ---
   useEffect(() => {
@@ -80,6 +106,14 @@ export function KanbanBoard() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [board.columns, isModalOpen]);
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center h-full text-muted-foreground animate-pulse p-10">
+        Loading board...
+      </div>
+    );
+  }
 
   // --- Filter logic ---
   const filteredTasks = board.tasks.filter((task) => {
@@ -164,39 +198,6 @@ export function KanbanBoard() {
     }
   };
 
-  // --- Modal logic ---
-  const handleEditTask = (task: Task) => {
-    setEditingTask(task);
-    setAddingToColumnId(undefined);
-    setIsModalOpen(true);
-  };
-
-  const handleAddTaskClick = (columnId: string) => {
-    setEditingTask(null);
-    setAddingToColumnId(columnId);
-    setIsModalOpen(true);
-  };
-
-  const handleSaveTask = (task: Task) => {
-    if (editingTask) {
-      updateTask(task);
-    } else {
-      addTask(task);
-    }
-  };
-
-  const handleDeleteTask = (taskId: string) => {
-    deleteTask(taskId);
-  };
-
-  const handleAddColumn = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newColumnTitle.trim()) {
-      addColumn(newColumnTitle.trim());
-      setNewColumnTitle('');
-      setIsAddingColumn(false);
-    }
-  };
 
   return (
     <div className="flex flex-col h-full w-full">
