@@ -20,9 +20,12 @@ import { TaskCard } from './TaskCard';
 import { TaskModal } from '../modal/TaskModal';
 import { FilterBar } from '../filters/FilterPanel';
 import { Task, Priority } from '@/types';
+import { Plus, X } from 'lucide-react';
+import { Button } from '../ui/Button';
+import { Input } from '../ui/Input';
 
 export function KanbanBoard() {
-  const { board, setTasks, addTask, updateTask, deleteTask, isLoaded } = useKanban();
+  const { board, setTasks, addTask, updateTask, deleteTask, addColumn, isLoaded } = useKanban();
   
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   
@@ -34,6 +37,10 @@ export function KanbanBoard() {
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState<Priority | 'All'>('All');
+
+  // New Column state
+  const [isAddingColumn, setIsAddingColumn] = useState(false);
+  const [newColumnTitle, setNewColumnTitle] = useState('');
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -182,6 +189,15 @@ export function KanbanBoard() {
     deleteTask(taskId);
   };
 
+  const handleAddColumn = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newColumnTitle.trim()) {
+      addColumn(newColumnTitle.trim());
+      setNewColumnTitle('');
+      setIsAddingColumn(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full w-full">
       <FilterBar 
@@ -211,6 +227,33 @@ export function KanbanBoard() {
               />
             );
           })}
+
+          <div className="flex-shrink-0 w-80 h-fit rounded-xl bg-card border border-border p-3">
+            {isAddingColumn ? (
+              <form onSubmit={handleAddColumn} className="flex flex-col gap-2">
+                <Input 
+                  autoFocus
+                  placeholder="Column title..." 
+                  value={newColumnTitle}
+                  onChange={(e) => setNewColumnTitle(e.target.value)}
+                />
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setIsAddingColumn(false)}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                  <Button type="submit" size="sm">Add</Button>
+                </div>
+              </form>
+            ) : (
+              <Button 
+                variant="ghost" 
+                className="w-full flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
+                onClick={() => setIsAddingColumn(true)}
+              >
+                <Plus className="w-4 h-4" /> Add Column
+              </Button>
+            )}
+          </div>
         </div>
 
         <DragOverlay>

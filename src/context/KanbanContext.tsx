@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Board, Task, Column } from '@/types';
 import { defaultBoard } from '@/lib/defaultData';
+import { v4 as uuidv4 } from 'uuid';
 
 interface KanbanContextProps {
   board: Board;
@@ -12,6 +13,7 @@ interface KanbanContextProps {
   addTask: (task: Task) => void;
   updateTask: (task: Task) => void;
   deleteTask: (id: string) => void;
+  addColumn: (title: string) => void;
   isLoaded: boolean;
 }
 
@@ -63,9 +65,17 @@ export const KanbanProvider = ({ children }: { children: ReactNode }) => {
     tasks: b.tasks.filter((t) => t.id !== id),
   }));
 
+  const addColumn = (title: string) => {
+    const newColumn: Column = {
+      id: uuidv4(),
+      title,
+    };
+    setBoard((b) => ({ ...b, columns: [...b.columns, newColumn] }));
+  };
+
   return (
     <KanbanContext.Provider value={{
-      board, setBoard, setTasks, setColumns, addTask, updateTask, deleteTask, isLoaded
+      board, setBoard, setTasks, setColumns, addTask, updateTask, deleteTask, addColumn, isLoaded
     }}>
       {children}
     </KanbanContext.Provider>
