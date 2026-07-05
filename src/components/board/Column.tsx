@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Column, Task } from '@/types';
@@ -21,6 +22,15 @@ export function KanbanColumn({ column, tasks, onTaskClick, onAddTask }: KanbanCo
     data: { type: 'Column', column },
   });
 
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const rowVirtualizer = useVirtualizer({
+    count: tasks.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 100,
+    overscan: 5,
+  });
+
   return (
     <div className="flex flex-col flex-shrink-0 w-[320px] bg-muted/40 rounded-xl border border-border shadow-sm max-h-full">
       <div className="p-3 border-b border-border flex items-center justify-between bg-muted/20">
@@ -33,16 +43,44 @@ export function KanbanColumn({ column, tasks, onTaskClick, onAddTask }: KanbanCo
       </div>
       
       <div 
-        ref={setNodeRef}
-        className={`flex-1 p-3 overflow-y-auto custom-scrollbar flex flex-col gap-3 min-h-[150px] transition-colors ${
+        ref={(node) => {
+          setNodeRef(node);
+          parentRef.current = node;
+        }}
+        className={`flex-1 overflow-y-auto custom-scrollbar min-h-[150px] transition-colors ${
           isOver ? 'bg-primary/5' : ''
         }`}
       >
-        <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
-          {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} onClick={onTaskClick} />
-          ))}
-        </SortableContext>
+        <div
+          style={{
+            height: `${rowVirtualizer.getTotalSize()}px`,
+            width: '100%',
+            position: 'relative',
+          }}
+          className="p-3"
+        >
+          <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
+            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+              const task = tasks[virtualRow.index];
+              return (
+                <div
+                  key={task.id}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: `${virtualRow.size}px`,
+                    transform: `translateY(${virtualRow.start}px)`,
+                    paddingBottom: '12px',
+                  }}
+                >
+                  <TaskCard task={task} onClick={onTaskClick} />
+                </div>
+              );
+            })}
+          </SortableContext>
+        </div>
       </div>
 
       <div className="p-3 border-t border-border bg-muted/20">
